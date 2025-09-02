@@ -12,14 +12,22 @@
     touch-action: none;
     -webkit-user-select: none;
     user-select: none;
+    margin: 0 auto;
 }
 
 /* Mobile styles */
 @media screen and (max-width: 768px) {
     .camera-container {
-        width: 100%;
+        width: 100vw;
+        height: 100vh;
         height: 100svh;
         border-radius: 0;
+        margin: 0;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
     }
 }
 
