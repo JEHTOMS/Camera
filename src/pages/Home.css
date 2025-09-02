@@ -21,6 +21,7 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
+    object-position: center;
     z-index: 0;
     image-rendering: -webkit-optimize-contrast;
     image-rendering: crisp-edges;
@@ -80,6 +81,7 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
+    object-position: center;
     image-rendering: -webkit-optimize-contrast;
     image-rendering: crisp-edges;
     image-rendering: pixelated;

@@ -24,14 +24,38 @@ function Home() {
   const [isPinching, setIsPinching] = useState(false);
 
   const capture = useCallback(() => {
-    const imageSrc = webcamRef.current.getScreenshot({
-      width: 4096,
-      height: 3072,
-      screenshotFormat: 'image/png',
-      screenshotQuality: 1.0
-    });
-    setCapturedImage(imageSrc);
-    setShowPreview(true);
+    if (!webcamRef.current) return;
+    
+    // Get the actual video element
+    const video = webcamRef.current.video;
+    if (!video) return;
+    
+    // Temporarily remove scaling to capture original image
+    const webcamContainer = webcamRef.current;
+    const originalStyle = webcamContainer.style.transform;
+    const originalTransition = webcamContainer.style.transition;
+    
+    // Reset to original size for capture
+    webcamContainer.style.transform = 'scale(1)';
+    webcamContainer.style.transition = 'none';
+    
+    // Use a short timeout to ensure the transform is applied
+    setTimeout(() => {
+      // Get screenshot with natural video dimensions
+      const imageSrc = webcamRef.current.getScreenshot({
+        width: video.videoWidth || 1920,
+        height: video.videoHeight || 1080,
+        screenshotFormat: 'image/png',
+        screenshotQuality: 1.0
+      });
+      
+      // Restore original scaling immediately after capture
+      webcamContainer.style.transform = originalStyle;
+      webcamContainer.style.transition = originalTransition;
+      
+      setCapturedImage(imageSrc);
+      setShowPreview(true);
+    }, 100);
   }, [webcamRef]);
 
   const retakePhoto = useCallback(() => {
@@ -124,11 +148,11 @@ function Home() {
   }, [handleTouchStart, handleTouchMove, handleTouchEnd]);
 
   const videoConstraints = {
-    width: { ideal: 4096, min: 1920 },
-    height: { ideal: 3072, min: 1080 },
+    width: { ideal: 1920, min: 1280 },
+    height: { ideal: 1080, min: 720 },
     facingMode: facingMode,
     frameRate: { ideal: 30, min: 15 },
-    resizeMode: 'crop-and-scale'
+    aspectRatio: { ideal: 16/9 }
   };
 
   // Try to apply hardware zoom constraints smoothly without restarting stream
@@ -175,8 +199,6 @@ function Home() {
               transform: `scale(${zoomLevel})`,
               transition: 'transform 0.2s ease-out'
             }}
-            width={4096}
-            height={3072}
           />
         )}
         
