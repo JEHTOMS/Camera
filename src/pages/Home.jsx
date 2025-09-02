@@ -7,11 +7,11 @@ import Preview from './Preview.jsx';
 
 function Home() {
   const [activeSegment, setActiveSegment] = useState('Photo');
-  const [facingMode, setFacingMode] = useState('user'); // 'user' for front (desktop), 'environment' for back (mobile)
+  const [facingMode, setFacingMode] = useState('environment'); // 'user' for front, 'environment' for back (default to back for mobile)
   const [capturedImage, setCapturedImage] = useState(null);
   const [zoomLevel, setZoomLevel] = useState(1); // Default 1x zoom
-  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const webcamRef = useRef(null);
   const containerRef = useRef(null);
   
