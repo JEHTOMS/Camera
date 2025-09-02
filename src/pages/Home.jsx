@@ -24,7 +24,12 @@ function Home() {
   const [isPinching, setIsPinching] = useState(false);
 
   const capture = useCallback(() => {
-    const imageSrc = webcamRef.current.getScreenshot();
+    const imageSrc = webcamRef.current.getScreenshot({
+      width: 4096,
+      height: 3072,
+      screenshotFormat: 'image/png',
+      screenshotQuality: 1.0
+    });
     setCapturedImage(imageSrc);
     setShowPreview(true);
   }, [webcamRef]);
@@ -112,10 +117,12 @@ function Home() {
   }, [handleTouchStart, handleTouchMove, handleTouchEnd]);
 
   const videoConstraints = {
-    width: { ideal: 1920 },
-    height: { ideal: 1080 },
-    facingMode: facingMode, // Use the state instead of hardcoded value
-    zoom: zoomLevel
+    width: { ideal: 4096, min: 1920 },
+    height: { ideal: 3072, min: 1080 },
+    facingMode: facingMode,
+    zoom: zoomLevel,
+    frameRate: { ideal: 30, min: 15 },
+    resizeMode: 'crop-and-scale'
   };
 
   // Update the webcam stream when zoom level or facing mode changes
@@ -153,10 +160,13 @@ function Home() {
           <Webcam
             audio={false}
             ref={webcamRef}
-            screenshotFormat="image/jpeg"
+            screenshotFormat="image/png"
+            screenshotQuality={1.0}
             videoConstraints={videoConstraints}
             className="webcam-fullscreen"
             style={!hardwareZoomSupported ? { transform: `scale(${zoomLevel})` } : {}}
+            width={4096}
+            height={3072}
           />
         )}
         
