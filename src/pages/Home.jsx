@@ -12,11 +12,12 @@ function Home() {
   const [zoomLevel, setZoomLevel] = useState(1); // Default 1x zoom
   const [showPreview, setShowPreview] = useState(false);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [hardwareZoomSupported, setHardwareZoomSupported] = useState(true);
   const webcamRef = useRef(null);
   const containerRef = useRef(null);
   
-  // Zoom levels array for cycling
-  const zoomLevels = [0.5, 1, 2];
+  // Zoom levels array for cycling - adjusted for hardware zoom
+  const zoomLevels = [1, 1.5, 2, 3];
   
   // Pinch to zoom state
   const [lastTouchDistance, setLastTouchDistance] = useState(0);
@@ -79,8 +80,8 @@ function Home() {
       
       setZoomLevel(prevZoom => {
         const newZoom = prevZoom * scale;
-        // Clamp zoom between 0.5x and 2x
-        return Math.max(0.5, Math.min(2, newZoom));
+        // Clamp zoom between 1x and 3x for hardware zoom
+        return Math.max(1, Math.min(3, newZoom));
       });
       
       setLastTouchDistance(currentDistance);
@@ -111,10 +112,26 @@ function Home() {
   }, [handleTouchStart, handleTouchMove, handleTouchEnd]);
 
   const videoConstraints = {
-    width: 393,
-    height: 600,
-    facingMode: facingMode
+    width: { ideal: 1920 },
+    height: { ideal: 1080 },
+    facingMode: facingMode, // Use the state instead of hardcoded value
+    zoom: zoomLevel
   };
+
+  // Update the webcam stream when zoom level or facing mode changes
+  useEffect(() => {
+    if (webcamRef.current && webcamRef.current.video) {
+      const track = webcamRef.current.video.srcObject?.getVideoTracks()[0];
+      if (track && track.applyConstraints && hardwareZoomSupported) {
+        track.applyConstraints({
+          advanced: [{ zoom: zoomLevel }]
+        }).catch(err => {
+          console.warn('Hardware zoom not supported, falling back to CSS scaling:', err);
+          setHardwareZoomSupported(false);
+        });
+      }
+    }
+  }, [zoomLevel, hardwareZoomSupported]);
 
   return (
     <div>
@@ -139,11 +156,7 @@ function Home() {
             screenshotFormat="image/jpeg"
             videoConstraints={videoConstraints}
             className="webcam-fullscreen"
-            style={{
-              transform: `scale(${zoomLevel})`,
-              transformOrigin: 'center center',
-              transition: isPinching ? 'none' : 'transform 0.2s ease'
-            }}
+            style={!hardwareZoomSupported ? { transform: `scale(${zoomLevel})` } : {}}
           />
         )}
         
