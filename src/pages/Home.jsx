@@ -24,39 +24,53 @@ function Home() {
   const [isPinching, setIsPinching] = useState(false);
 
   const capture = useCallback(() => {
-    if (!webcamRef.current) return;
+    if (!webcamRef.current || !webcamRef.current.video) return;
     
-    // Get the actual video element
-    const video = webcamRef.current.video;
-    if (!video) return;
-    
-    // Temporarily remove scaling to capture original image
-    const webcamContainer = webcamRef.current;
-    const originalStyle = webcamContainer.style.transform;
-    const originalTransition = webcamContainer.style.transition;
-    
-    // Reset to original size for capture
-    webcamContainer.style.transform = 'scale(1)';
-    webcamContainer.style.transition = 'none';
-    
-    // Use a short timeout to ensure the transform is applied
-    setTimeout(() => {
-      // Get screenshot with natural video dimensions
-      const imageSrc = webcamRef.current.getScreenshot({
-        width: video.videoWidth || 1920,
-        height: video.videoHeight || 1080,
-        screenshotFormat: 'image/png',
-        screenshotQuality: 1.0
-      });
+    try {
+      const video = webcamRef.current.video;
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
       
-      // Restore original scaling immediately after capture
-      webcamContainer.style.transform = originalStyle;
-      webcamContainer.style.transition = originalTransition;
+      // Set canvas to high resolution
+      const width = video.videoWidth || 1920;
+      const height = video.videoHeight || 1080;
+      
+      // Calculate the zoomed region
+      const scale = 1 / zoomLevel;
+      const cropWidth = width * scale;
+      const cropHeight = height * scale;
+      const cropX = (width - cropWidth) / 2;
+      const cropY = (height - cropHeight) / 2;
+      
+      // Set canvas size to original resolution for quality
+      canvas.width = width;
+      canvas.height = height;
+      
+      // Draw the cropped and scaled region
+      ctx.drawImage(
+        video,
+        cropX, cropY, cropWidth, cropHeight, // Source rectangle (cropped)
+        0, 0, width, height // Destination rectangle (full canvas)
+      );
+      
+      // Convert to PNG with high quality
+      const imageSrc = canvas.toDataURL('image/png', 1.0);
       
       setCapturedImage(imageSrc);
       setShowPreview(true);
-    }, 100);
-  }, [webcamRef]);
+    } catch (error) {
+      console.error('Failed to capture image:', error);
+      // Fallback to simple screenshot
+      const imageSrc = webcamRef.current.getScreenshot({
+        screenshotFormat: 'image/png',
+        screenshotQuality: 1.0
+      });
+      if (imageSrc) {
+        setCapturedImage(imageSrc);
+        setShowPreview(true);
+      }
+    }
+  }, [webcamRef, zoomLevel]);
 
   const retakePhoto = useCallback(() => {
     setCapturedImage(null);
@@ -188,18 +202,26 @@ function Home() {
             </button>
           </div>
         ) : (
-          <Webcam
-            audio={false}
-            ref={webcamRef}
-            screenshotFormat="image/png"
-            screenshotQuality={1.0}
-            videoConstraints={videoConstraints}
-            className="webcam-fullscreen"
-            style={{ 
-              transform: `scale(${zoomLevel})`,
+          <div 
+            className="webcam-viewport"
+            style={{
+              transform: zoomLevel < 1 ? `scale(${zoomLevel})` : 'scale(1)',
               transition: 'transform 0.2s ease-out'
             }}
-          />
+          >
+            <Webcam
+              audio={false}
+              ref={webcamRef}
+              screenshotFormat="image/png"
+              screenshotQuality={1.0}
+              videoConstraints={videoConstraints}
+              className="webcam-fullscreen"
+              style={{ 
+                transform: zoomLevel >= 1 ? `scale(${zoomLevel})` : 'scale(1)',
+                transition: 'transform 0.2s ease-out'
+              }}
+            />
+          </div>
         )}
         
         <div className="navigation-bar">
