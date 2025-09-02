@@ -69,9 +69,15 @@ function Home() {
     );
   };
 
+  // Helper function to round zoom to 1 decimal place
+  const roundZoom = (zoom) => {
+    return Math.round(zoom * 10) / 10;
+  };
+
   // Pinch to zoom handlers
   const handleTouchStart = useCallback((e) => {
     if (e.touches.length === 2) {
+      e.preventDefault();
       setIsPinching(true);
       setLastTouchDistance(getTouchDistance(e.touches));
     }
@@ -85,8 +91,9 @@ function Home() {
       
       setZoomLevel(prevZoom => {
         const newZoom = prevZoom * scale;
-        // Clamp zoom between 1x and 3x for hardware zoom
-        return Math.max(1, Math.min(3, newZoom));
+        // Clamp zoom between 0.5x and 3x and round to 1 decimal
+        const clampedZoom = Math.max(0.5, Math.min(3, newZoom));
+        return roundZoom(clampedZoom);
       });
       
       setLastTouchDistance(currentDistance);
@@ -120,21 +127,21 @@ function Home() {
     width: { ideal: 4096, min: 1920 },
     height: { ideal: 3072, min: 1080 },
     facingMode: facingMode,
-    zoom: zoomLevel,
     frameRate: { ideal: 30, min: 15 },
     resizeMode: 'crop-and-scale'
   };
 
-  // Update the webcam stream when zoom level or facing mode changes
+  // Try to apply hardware zoom constraints smoothly without restarting stream
   useEffect(() => {
-    if (webcamRef.current && webcamRef.current.video) {
+    if (webcamRef.current && webcamRef.current.video && hardwareZoomSupported) {
       const track = webcamRef.current.video.srcObject?.getVideoTracks()[0];
-      if (track && track.applyConstraints && hardwareZoomSupported) {
+      if (track && track.applyConstraints) {
+        // Apply hardware zoom constraints smoothly
         track.applyConstraints({
-          advanced: [{ zoom: zoomLevel }]
+          zoom: zoomLevel
         }).catch(err => {
-          console.warn('Hardware zoom not supported, falling back to CSS scaling:', err);
-          setHardwareZoomSupported(false);
+          console.warn('Hardware zoom constraint failed:', err);
+          // Don't disable hardware zoom immediately, just this attempt failed
         });
       }
     }
@@ -164,7 +171,10 @@ function Home() {
             screenshotQuality={1.0}
             videoConstraints={videoConstraints}
             className="webcam-fullscreen"
-            style={!hardwareZoomSupported ? { transform: `scale(${zoomLevel})` } : {}}
+            style={{ 
+              transform: `scale(${zoomLevel})`,
+              transition: 'transform 0.2s ease-out'
+            }}
             width={4096}
             height={3072}
           />
@@ -205,7 +215,7 @@ function Home() {
             <div className='capture-icon'></div>
           </button>
           <button className="icon-button-lg" id="zoom-button" onClick={handleZoomClick}>
-            {zoomLevel}x
+            {roundZoom(zoomLevel)}x
           </button>
           </div>
           <SegmentedControl

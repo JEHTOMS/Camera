@@ -9,6 +9,9 @@
     background: rgb(255, 243, 224);
     position: relative;
     overflow: hidden;
+    touch-action: none;
+    -webkit-user-select: none;
+    user-select: none;
 }
 
 .webcam-fullscreen {
@@ -21,6 +24,8 @@
     z-index: 0;
     image-rendering: -webkit-optimize-contrast;
     image-rendering: crisp-edges;
+    transform-origin: center center;
+    will-change: transform;
 }
 
 .navigation-bar{
