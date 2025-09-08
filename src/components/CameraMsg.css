@@ -7,12 +7,11 @@
 .prompt-container {
     display: flex;
     align-items: flex-start;
-    width: 260px; /* Set explicit width instead of max-width */
+    width: 320px; /* Set explicit width instead of max-width */
     gap: var(--Uncapped-6, 6px);
     padding: 8px;
     border-radius: 10px;
     background: var(--Sentiment-Background-Surface, #2A2C29);
-    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .prompt-icon {
