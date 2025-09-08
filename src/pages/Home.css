@@ -6,7 +6,7 @@
     align-items: flex-start;
     flex-shrink: 0;
     border-radius: 48px;
-    background: rgb(255, 243, 224);
+    background: #f1f1ee;
     position: relative;
     overflow: hidden;
     touch-action: none;
@@ -49,9 +49,61 @@
     left: 0;
     width: 100%;
     height: 100%;
-    transform-origin: center center;
-    will-change: transform;
     overflow: hidden;
+}
+
+/* QR Code overlay styles */
+.qr-code-overlay {
+    position: absolute;
+    top: 45%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 10;
+    pointer-events: none;
+    animation: fadeInScale 0.3s ease-out;
+}
+
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+}
+
+/* Camera Message Container - positioned 32px above footer */
+.camera-msg-container {
+    position: absolute;
+    bottom: calc(165px + 32px); /* Footer height (165px) + 32px spacing */
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 15;
+    transition: transform 0.15s ease-out, opacity 0.15s ease-out;
+    pointer-events: none; /* Allow clicks to pass through */
+}
+
+.camera-msg-container.slide-out {
+    transform: translateX(-50%) translateY(100px);
+    opacity: 0;
+}
+
+/* Mobile styles for camera message */
+@media screen and (max-width: 768px) {
+    .camera-msg-container {
+        bottom: calc(165px + 16px); /* Same footer height + reduced spacing on mobile */
+        left: 16px;
+        right: 16px;
+        transform: none;
+        display: flex;
+        justify-content: center;
+    }
+    
+    .camera-msg-container.slide-out {
+        transform: translateY(100px);
+    }
 }
 
 .navigation-bar{
@@ -191,7 +243,7 @@ align-self: stretch;
 
 .footer{
     display: flex;
-    padding: 16px 16px 40px 16px;
+    padding: 16px 16px 16px 16px;
     flex-direction: column;
     align-items: flex-start;
     gap: 16px;
@@ -208,7 +260,7 @@ align-self: stretch;
 /* Mobile footer */
 @media screen and (max-width: 768px) {
     .footer {
-        padding: 16px 16px calc(40px + env(safe-area-inset-bottom)) 16px;
+        padding: 16px 16px 16px 16px;
         border-radius: 0;
     }
 }

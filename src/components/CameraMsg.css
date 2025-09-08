@@ -1,0 +1,36 @@
+.camera-msg {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.prompt-container {
+    display: flex;
+    align-items: flex-start;
+    width: 260px; /* Set explicit width instead of max-width */
+    gap: var(--Uncapped-6, 6px);
+    padding: 8px;
+    border-radius: 10px;
+    background: var(--Sentiment-Background-Surface, #2A2C29);
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.prompt-icon {
+    flex-shrink: 0;
+    margin-top: 2px; /* Align with text */
+}
+
+.prompt-text {
+    color: var(--Sentiment-Content-Primary, #F1F1ED);
+    font-feature-settings: 'liga' off, 'clig' off;
+    
+    /* Body/Default */
+    font-family: var(--Product-Typography-Body-Default-Font, Inter);
+    font-size: var(--Product-Typography-Body-Default-Size, 14px);
+    font-style: normal;
+    font-weight: 400;
+    line-height: 155%; /* 21.7px */
+    letter-spacing: -0.084px;
+    margin: 0;
+    text-align: left;
+}

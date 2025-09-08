@@ -4,6 +4,8 @@ import './Home.css';
 import SegmentedControl from '../components/SegmentedControl.jsx';
 import Upload from '../components/Upload.jsx';
 import Preview from './Preview.jsx';
+import QrCode from '../components/QrCode.jsx';
+import CameraMsg from '../components/CameraMsg.jsx';
 
 function Home() {
   const [activeSegment, setActiveSegment] = useState('Photo');
@@ -13,6 +15,15 @@ function Home() {
   const [showPreview, setShowPreview] = useState(false);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [hardwareZoomSupported, setHardwareZoomSupported] = useState(true);
+  
+  // New state for uploaded files
+  const [uploadedFile, setUploadedFile] = useState(null);
+  const [uploadedFileType, setUploadedFileType] = useState(null);
+  const [uploadedFileUrl, setUploadedFileUrl] = useState(null);
+  
+  // Camera message state
+  const [showCameraMsg, setShowCameraMsg] = useState(false);
+  const [cameraMsgSlideOut, setCameraMsgSlideOut] = useState(false);
   const webcamRef = useRef(null);
   const containerRef = useRef(null);
   
@@ -75,7 +86,15 @@ function Home() {
   const retakePhoto = useCallback(() => {
     setCapturedImage(null);
     setShowPreview(false);
-  }, []);
+    
+    // Clean up uploaded file state
+    if (uploadedFileUrl) {
+      URL.revokeObjectURL(uploadedFileUrl);
+    }
+    setUploadedFile(null);
+    setUploadedFileType(null);
+    setUploadedFileUrl(null);
+  }, [uploadedFileUrl]);
 
   const switchCamera = useCallback(() => {
     setFacingMode(prevMode => prevMode === 'user' ? 'environment' : 'user');
@@ -96,6 +115,55 @@ function Home() {
   const closeUploadModal = useCallback(() => {
     setIsUploadModalOpen(false);
   }, []);
+
+  // File upload handler
+  const handleFileUpload = useCallback((file) => {
+    if (!file) return;
+    
+    // Clean up previous uploaded file URL to prevent memory leaks
+    if (uploadedFileUrl) {
+      URL.revokeObjectURL(uploadedFileUrl);
+    }
+    
+    // Determine file type
+    const fileType = file.type;
+    let category;
+    
+    if (fileType.startsWith('image/')) {
+      category = 'image';
+    } else if (fileType === 'application/pdf') {
+      category = 'pdf';
+    } else if (fileType.includes('document') || fileType.includes('word') || 
+               fileType.includes('text') || fileType.includes('rtf')) {
+      category = 'document';
+    } else {
+      category = 'other';
+    }
+    
+    // Create object URL for preview
+    const fileUrl = URL.createObjectURL(file);
+    
+    // Update state
+    setUploadedFile(file);
+    setUploadedFileType(category);
+    setUploadedFileUrl(fileUrl);
+    
+    // Clear any captured image since we're now working with uploaded file
+    setCapturedImage(null);
+    
+    // Close upload modal and show preview
+    setIsUploadModalOpen(false);
+    setShowPreview(true);
+  }, [uploadedFileUrl]);
+
+  // Clean up object URL when component unmounts or file changes
+  useEffect(() => {
+    return () => {
+      if (uploadedFileUrl) {
+        URL.revokeObjectURL(uploadedFileUrl);
+      }
+    };
+  }, [uploadedFileUrl]);
 
   // Helper function to get distance between two touch points
   const getTouchDistance = (touches) => {
@@ -185,10 +253,58 @@ function Home() {
     }
   }, [zoomLevel, hardwareZoomSupported]);
 
+  // Handle CameraMsg display when Photo segment is activated or on initial load
+  useEffect(() => {
+    if (activeSegment === 'Photo' && !showPreview && !capturedImage) {
+      // Show the message immediately
+      setShowCameraMsg(true);
+      setCameraMsgSlideOut(false);
+      
+      // Start slide-down animation after 4000ms
+      const slideTimer = setTimeout(() => {
+        setCameraMsgSlideOut(true);
+      }, 8000);
+      
+      // Hide completely after animation completes (additional 300ms for slide animation)
+      const hideTimer = setTimeout(() => {
+        setShowCameraMsg(false);
+        setCameraMsgSlideOut(false);
+      }, 8300);
+      
+      return () => {
+        clearTimeout(slideTimer);
+        clearTimeout(hideTimer);
+      };
+    } else {
+      // Hide message when not in Photo mode or when preview is shown
+      setShowCameraMsg(false);
+      setCameraMsgSlideOut(false);
+    }
+  }, [activeSegment, showPreview, capturedImage]);
+
+  // Ensure CameraMsg shows immediately on component mount if conditions are met
+  useEffect(() => {
+    // Small delay to ensure all initial states are set
+    const initialTimer = setTimeout(() => {
+      if (activeSegment === 'Photo' && !showPreview && !capturedImage) {
+        setShowCameraMsg(true);
+        setCameraMsgSlideOut(false);
+      }
+    }, 100);
+
+    return () => clearTimeout(initialTimer);
+  }, []); // Empty dependency array - runs only once on mount
+
   return (
     <div>
       {showPreview ? (
-        <Preview capturedImage={capturedImage} onRetake={retakePhoto} />
+        <Preview 
+          capturedImage={capturedImage} 
+          onRetake={retakePhoto}
+          uploadedFile={uploadedFile}
+          uploadedFileType={uploadedFileType}
+          uploadedFileUrl={uploadedFileUrl}
+        />
       ) : (
         <div className="camera-container" ref={containerRef}>
         {capturedImage ? (
@@ -202,26 +318,35 @@ function Home() {
             </button>
           </div>
         ) : (
-          <div 
-            className="webcam-viewport"
-            style={{
-              transform: zoomLevel < 1 ? `scale(${zoomLevel})` : 'scale(1)',
-              transition: 'transform 0.2s ease-out'
-            }}
-          >
-            <Webcam
-              audio={false}
-              ref={webcamRef}
-              screenshotFormat="image/png"
-              screenshotQuality={1.0}
-              videoConstraints={videoConstraints}
-              className="webcam-fullscreen"
-              style={{ 
-                transform: zoomLevel >= 1 ? `scale(${zoomLevel})` : 'scale(1)',
+          <>
+            <div 
+              className="webcam-viewport"
+              style={{
+                transform: zoomLevel < 1 ? `scale(${zoomLevel})` : 'scale(1)',
                 transition: 'transform 0.2s ease-out'
               }}
-            />
-          </div>
+            >
+              <Webcam
+                audio={false}
+                ref={webcamRef}
+                screenshotFormat="image/png"
+                screenshotQuality={1.0}
+                videoConstraints={videoConstraints}
+                className="webcam-fullscreen"
+                style={{ 
+                  transform: zoomLevel >= 1 ? `scale(${zoomLevel})` : 'scale(1)',
+                  transition: 'transform 0.2s ease-out'
+                }}
+              />
+            </div>
+            
+            {/* QR Code overlay when QR segment is active */}
+            {activeSegment === 'QR code' && (
+              <div className="qr-code-overlay">
+                <QrCode />
+              </div>
+            )}
+          </>
         )}
         
         <div className="navigation-bar">
@@ -248,11 +373,18 @@ function Home() {
             </div>
         </div>
         
+        {/* Camera Message - shows 32px above footer when Photo segment is active */}
+        {showCameraMsg && (
+          <div className={`camera-msg-container ${cameraMsgSlideOut ? 'slide-out' : ''}`}>
+            <CameraMsg />
+          </div>
+        )}
+        
         <div className='footer'>
             <div className='footer-controls'>
           <button className='icon-button-lg' id='upload-button' onClick={openUploadModal}>
             <svg width="14" height="20" viewBox="0 0 15 21" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M9.0957 0.59082C11.8569 0.591084 14.0957 2.82956 14.0957 5.59082V13.5908C14.0954 17.4564 10.9613 20.5906 7.0957 20.5908C3.22987 20.5908 0.0949904 17.4566 0.0947266 13.5908V5.59082H2.0957V13.5908C2.09597 16.352 4.33444 18.5908 7.0957 18.5908C9.85674 18.5906 12.0954 16.3519 12.0957 13.5908V5.59082C12.0957 3.93413 10.7523 2.59108 9.0957 2.59082C7.43885 2.59082 6.0957 3.93397 6.0957 5.59082V13.5908C6.09597 14.1429 6.54358 14.5908 7.0957 14.5908C7.6476 14.5906 8.09544 14.1427 8.0957 13.5908V5.59082H10.0957V13.5908C10.0954 15.2473 8.75217 16.5906 7.0957 16.5908C5.43901 16.5908 4.09597 15.2474 4.0957 13.5908V5.59082C4.0957 2.8294 6.33428 0.59082 9.0957 0.59082Z" fill="white" style={{fill:"white", fillOpacity:1}}/>
+<path d="M9.0957 0.59082C11.8569 0.591084 14.0957 2.82956 14.0957 5.59082V13.5908C14.0954 17.4564 10.9613 20.5906 7.0957 20.5908C3.22987 20.5908 0.0949904 17.4566 0.0947266 13.5908V5.59082H2.0957V13.5908C2.09597 16.352 4.33444 18.5908 7.0957 18.5908C9.85674 18.5906 12.0954 16.3519 12.0957 13.5908V5.59082C12.0957 3.93413 10.7523 2.59108 9.0957 2.59082C7.43885 2.59082 6.0957 3.93397 6.0957 5.59082V13.5908C6.09597 14.1429 6.54358 14.5908 7.0957 14.5908C7.6476 14.5906 8.09544 14.1427 8.0957 13.5908V5.59082H10.0957V13.5908C10.0954 15.2473 8.75217 16.5906 7.0957 16.5908C5.43901 16.5908 4.09597 15.2474 4.0957 13.5908V5.59082C4.0957 2.8294 6.33428 0.59082 9.0957 0.59082Z" fill="white" style={{fill: "white", fillOpacity: 1}}/>
 </svg>
           </button>
           <button className='capture' id='capture-button' onClick={capture}>
@@ -271,7 +403,11 @@ function Home() {
             onChange={setActiveSegment}
           />
         </div>
-        <Upload isOpen={isUploadModalOpen} onClose={closeUploadModal} />
+        <Upload 
+          isOpen={isUploadModalOpen} 
+          onClose={closeUploadModal} 
+          onFileUpload={handleFileUpload}
+        />
         </div>
       )}
     </div>

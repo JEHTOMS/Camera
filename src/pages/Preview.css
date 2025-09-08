@@ -24,20 +24,13 @@
 .preview-content {
     display: flex;
     flex-direction: column;
-    justify-content: flex-end;
+    justify-content: center;
     align-items: center;
     gap: var(--Vertical-Between-sections, 32px);
     flex: 1 0 0;
     align-self: stretch;
 }
 
-/* Mobile preview content */
-@media screen and (max-width: 768px) {
-    .preview-content {
-        padding-top: 100px; /* Account for fixed header */
-        padding-bottom: 120px; /* Account for fixed footer */
-    }
-}
 
 .footer-preview {
     display: flex;
@@ -91,9 +84,33 @@ background: var(--Interactive-Primary, #9FE870);
     max-height: 100%;
 }
 
+.preview-image-container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    border-radius: 16px;
+}
+
+.uploaded-image {
+    object-fit: contain;
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+}
+
+.captured-image {
+    object-fit: cover;
+    width: 100%;
+    height: 100%;
+}
+
 /* Mobile preview image */
 @media screen and (max-width: 768px) {
-    .preview-image {
+    .preview-image-container {
         border-radius: 0;
         position: fixed;
         top: 0;
@@ -101,5 +118,261 @@ background: var(--Interactive-Primary, #9FE870);
         right: 0;
         bottom: 0;
         z-index: 1;
+        background: #000;
+    }
+    
+    .preview-image {
+        border-radius: 0;
+    }
+    
+    .uploaded-image {
+        object-fit: contain;
+        max-width: 100vw;
+        max-height: 100vh;
+    }
+    
+    .captured-image {
+        object-fit: cover;
+        width: 100vw;
+        height: 100vh;
+    }
+}
+.preview-footer{
+    gap: 10px !important;
+}
+
+/* Document preview styles */
+.preview-document {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: var(--Background-Neutral, rgba(62, 59, 7, 0.07));
+    border-radius: 16px;
+    overflow: hidden;
+    position: relative;
+}
+
+.pdf-preview-container {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+.preview-pdf {
+    width: 100%;
+    height: 100%;
+    border: none;
+    border-radius: 16px;
+    background: white;
+}
+
+.pdf-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.3);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+}
+
+.pdf-preview-container:hover .pdf-overlay {
+    opacity: 1;
+}
+
+.pdf-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    color: white;
+    text-align: center;
+}
+
+.pdf-name {
+    font-size: 14px;
+    font-weight: 500;
+    word-break: break-word;
+    max-width: 200px;
+}
+
+.pdf-size {
+    font-size: 12px;
+    opacity: 0.8;
+    font-weight: 400;
+}
+
+.document-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    padding: 32px;
+    text-align: center;
+}
+
+.document-icon {
+    width: 48px;
+    height: 48px;
+    color: var(--Interactive-Primary, #9FE870);
+}
+
+.document-details {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.document-name {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0;
+    word-break: break-word;
+    max-width: 280px;
+}
+
+.document-size,
+.document-type {
+    font-size: 14px;
+    color: var(--Text-Secondary, rgba(0, 0, 0, 0.6));
+    margin: 0;
+}
+
+.preview-error {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    color: var(--Text-Secondary, rgba(0, 0, 0, 0.6));
+}
+
+/* Mobile document preview */
+@media screen and (max-width: 768px) {
+    .preview-document {
+        border-radius: 0;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 1;
+    }
+
+    .pdf-preview-container {
+        border-radius: 0;
+        position: fixed;
+        top: 100px;
+        left: 0;
+        right: 0;
+        bottom: 120px;
+        z-index: 1;
+    }
+    
+    .preview-pdf {
+        border-radius: 0;
+        width: 100%;
+        height: 100%;
+    }
+    
+    .document-info {
+        padding: 16px;
+        height: calc(100vh - 220px);
+        justify-content: center;
+    }
+    
+    .document-name {
+        font-size: 16px;
+        max-width: calc(100vw - 64px);
+    }
+}
+
+/* PDF Controls and Download Buttons */
+.pdf-controls {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    display: flex;
+    gap: 8px;
+    z-index: 10;
+}
+
+.pdf-download-btn {
+    background: var(--Interactive-Primary, #9FE870);
+    color: black;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 999px;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.pdf-download-btn:hover {
+    background: #8ed65f;
+    transform: translateY(-1px);
+}
+
+.pdf-download-btn.small {
+    padding: 8px 16px;
+    font-size: 12px;
+}
+
+.pdf-fallback-btn {
+    background: rgba(255, 255, 255, 0.9);
+    color: black;
+    border: 1px solid #e5e5e5;
+    padding: 12px 24px;
+    border-radius: 999px;
+    font-weight: 500;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s ease;
+}
+
+.pdf-fallback-btn:hover {
+    background: rgba(255, 255, 255, 1);
+    border-color: #d1d5db;
+}
+
+.pdf-fallback-btn.small {
+    padding: 8px 16px;
+    font-size: 12px;
+}
+
+.pdf-preview-note {
+    font-style: italic;
+    color: var(--Text-Secondary, rgba(0, 0, 0, 0.6));
+    margin: 8px 0;
+    font-size: 14px;
+}
+
+/* Mobile PDF controls */
+@media screen and (max-width: 768px) {
+    .pdf-controls {
+        top: calc(100px + 16px); /* Account for fixed header */
+        right: 16px;
+        flex-direction: column;
+        align-items: flex-end;
+    }
+    
+    .pdf-download-btn,
+    .pdf-fallback-btn {
+        padding: 10px 16px;
+        font-size: 12px;
     }
 }
