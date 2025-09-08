@@ -71,6 +71,7 @@ padding: var(--Uncapped-12, 12px) var(--16, 16px);
 justify-content: center;
 align-items: center;
 flex: 1 0 0;
+height: 48px;
 border-radius: var(--Product-Shape-Buttons-and-controls, 999px);
 background: var(--Background-Neutral, rgba(62, 59, 7, 0.07));
 }
@@ -80,6 +81,7 @@ padding: var(--Uncapped-12, 12px) var(--16, 16px);
 justify-content: center;
 align-items: center;
 flex: 1 0 0;
+height: 48px;
 border-radius: var(--Product-Shape-Buttons-and-controls, 999px);
 background: var(--Interactive-Primary, #9FE870);
 }
