@@ -230,8 +230,8 @@ function Home() {
   }, [handleTouchStart, handleTouchMove, handleTouchEnd]);
 
   const videoConstraints = {
-    width: { ideal: 1920, min: 1280 },
-    height: { ideal: 1080, min: 720 },
+    width: { ideal: 1280, min: 1280 },
+    height: { ideal: 720, min: 720 },
     facingMode: facingMode,
     frameRate: { ideal: 30, min: 15 },
     aspectRatio: { ideal: 16/9 }
@@ -319,13 +319,7 @@ function Home() {
           </div>
         ) : (
           <>
-            <div 
-              className="webcam-viewport"
-              style={{
-                transform: zoomLevel < 1 ? `scale(${zoomLevel})` : 'scale(1)',
-                transition: 'transform 0.2s ease-out'
-              }}
-            >
+            <div className="webcam-viewport">
               <Webcam
                 audio={false}
                 ref={webcamRef}
@@ -334,7 +328,7 @@ function Home() {
                 videoConstraints={videoConstraints}
                 className="webcam-fullscreen"
                 style={{ 
-                  transform: zoomLevel >= 1 ? `scale(${zoomLevel})` : 'scale(1)',
+                  transform: `scale(${zoomLevel})`,
                   transition: 'transform 0.2s ease-out'
                 }}
               />
