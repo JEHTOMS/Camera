@@ -125,7 +125,7 @@
 /* Mobile navigation */
 @media screen and (max-width: 768px) {
     .navigation-bar {
-        padding: calc(40px + env(safe-area-inset-top)) 16px 16px 16px;
+        padding: calc(24px + env(safe-area-inset-top)) 16px 16px 16px;
         border-radius: 0px !important;
     }
 }
